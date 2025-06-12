@@ -1,7 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:e_commerce_app/pages/cart_page.dart';
 import 'package:e_commerce_app/pages/product_details_page.dart';
 import 'package:e_commerce_app/viewmodel/dashboard_viewmodel.dart';
+import 'package:e_commerce_app/widgets/custom_appicon.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -13,230 +15,434 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
+  final List<String> discountImages = ['assets/images/BannerTemplate.jpg'];
+
+  Widget _buildCategoryChip(String text, bool isSelected) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 4.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      decoration: BoxDecoration(
+        color: isSelected ? Colors.black : Colors.grey[200],
+        borderRadius: BorderRadius.circular(20.0),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: isSelected ? Colors.white : Colors.black,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create:
-          (context) =>
-              ProductProvider(), // Initialize ProductProvider directly here
+      create: (context) => ProductProvider(),
       child: Consumer<ProductProvider>(
         builder: (context, productProvider, child) {
-          // Show a loading indicator if categories are being loaded
-          if (productProvider.isLoadingCategories) {
+          // Show a loading indicator if categories are being loaded initially
+          if (productProvider.isLoadingCategories &&
+              productProvider.categories.isEmpty) {
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             );
           }
 
           return Scaffold(
-            appBar: AppBar(
-              leading: const Icon(Icons.menu),
-              actions: const [
-                Padding(
-                  padding: EdgeInsets.only(right: 12.0),
-                  child: Icon(Icons.notification_add),
-                ),
-              ],
-            ),
+            backgroundColor: Colors.white,
             body: Column(
               children: [
-                // Category List
-                SizedBox(
-                  height: 50,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    itemCount: productProvider.categories.length,
-                    itemBuilder: (context, index) {
-                      final category = productProvider.categories[index];
-                      return GestureDetector(
-                        onTap: () {},
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: Chip(label: Text(category)),
-                        ),
-                      );
-                    },
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 8.0,
+                  ),
+                  decoration: const BoxDecoration(color: Colors.white),
+                  child: SafeArea(
+                    // Ensures content respects device notches/status bar
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        CustomAppicon(icon: Icons.apps_rounded),
+                        CustomAppicon(icon: Icons.notifications_none),
+                      ],
+                    ),
                   ),
                 ),
-                // Section Header: "Special for You"
-                const Padding(
-                  padding: EdgeInsets.all(12.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Special for You",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                        ),
-                      ),
-                      TextButton(
-                        onPressed:
-                            null, // onPressed: () {}, // Re-enable when functionality is added
-                        child: Text("See All"),
-                      ),
-                    ],
-                  ),
-                ),
-                // Product Grid or Loading Indicator
+                SizedBox(height: 12),
                 Expanded(
-                  // Use Expanded to make the GridView take available space and be scrollable
-                  child:
-                      productProvider.isLoadingProducts
-                          ? const Center(
-                            child: Column(
-                              mainAxisAlignment:
-                                  MainAxisAlignment
-                                      .center, // Center content vertically
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 1. Search Bar
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(100),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 0,
+                            ),
+                            child: Row(
                               children: [
-                                CircularProgressIndicator(),
-                                SizedBox(height: 10), // Add some spacing
-                                Text(
-                                  "Please wait...",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
+                                const Icon(Icons.search, color: Colors.grey),
+                                const SizedBox(width: 10),
+                                const Expanded(
+                                  child: TextField(
+                                    decoration: InputDecoration(
+                                      hintText: 'Search...',
+                                      border: InputBorder.none,
+                                      isDense: true, // Reduce vertical padding
+                                    ),
+                                    style: TextStyle(fontSize: 14),
                                   ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.tune,
+                                    color: Colors.grey,
+                                  ), // Filter icon
+                                  onPressed: () {},
+                                  constraints:
+                                      const BoxConstraints(), // Remove extra padding from IconButton
+                                  padding: EdgeInsets.zero,
                                 ),
                               ],
                             ),
-                          )
-                          : GridView.builder(
-                            padding: const EdgeInsets.only(
-                              left: 10.0,
-                              right: 10.0,
-                            ),
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
-                                  crossAxisSpacing: 20.0,
-                                  mainAxisSpacing: 20.0,
-                                  childAspectRatio: 0.8,
+                          ),
+                          const SizedBox(height: 20),
+
+                          // 2. Super Sale Discount Banner
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 16.0),
+                            child: CarouselSlider(
+                              options: CarouselOptions(
+                                height: 180.0, // Adjust height as needed
+                                autoPlay: true,
+                                enlargeCenterPage: true,
+                                aspectRatio: 16 / 9,
+                                autoPlayCurve: Curves.fastOutSlowIn,
+                                enableInfiniteScroll: true,
+                                autoPlayAnimationDuration: const Duration(
+                                  milliseconds: 1000,
                                 ),
-                            itemCount: productProvider.allProducts.length,
-                            itemBuilder: (context, index) {
-                              final product =
-                                  productProvider.allProducts[index];
-                              print(product.image);
-                              return GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder:
-                                          (context) => ProductDetailScreen(
-                                            product: product,
+                                viewportFraction: 1.0,
+                              ),
+                              items:
+                                  discountImages.map((imageUrl) {
+                                    return Builder(
+                                      builder: (BuildContext context) {
+                                        return Container(
+                                          width:
+                                              MediaQuery.of(context).size.width,
+                                          margin: const EdgeInsets.symmetric(
+                                            horizontal: 5.0,
                                           ),
+                                          decoration: BoxDecoration(
+                                            color:
+                                                Colors
+                                                    .grey[200], // Placeholder color
+                                            borderRadius: BorderRadius.circular(
+                                              12.0,
+                                            ),
+                                            image: DecorationImage(
+                                              image: AssetImage(imageUrl),
+                                              fit: BoxFit.cover,
+                                            ),
+                                          ),
+                                          child: Center(
+                                            // You can overlay text like "Super Sale Discount Up to 50%" here
+                                            // For now, it's just the image.
+                                            child:
+                                                Container(), // Or a Text widget
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  }).toList(),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // 3. Category Chips
+                          SizedBox(
+                            height: 40,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 0.0,
+                              ),
+                              itemCount: productProvider.categories.length,
+                              itemBuilder: (context, index) {
+                                final category =
+                                    productProvider.categories[index];
+                                // Highlight the selected category based on productProvider state
+                                bool isSelected =
+                                    productProvider.selectedCategory ==
+                                    category;
+                                return GestureDetector(
+                                  onTap: () {
+                                    productProvider.setSelectedCategory(
+                                      category,
+                                    );
+                                    // You might want to filter products here based on category
+                                  },
+                                  child: _buildCategoryChip(
+                                    category,
+                                    isSelected,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // 4. "Special For You" Header
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "Special For You",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20,
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  // Handle "See All" functionality
+                                },
+                                child: const Text(
+                                  "See all",
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+
+                          // 5. Product Grid or Loading Indicator
+                          productProvider.isLoadingProducts
+                              ? const Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    CircularProgressIndicator(),
+                                    SizedBox(height: 10),
+                                    Text(
+                                      "Please wait...",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                              : GridView.builder(
+                                shrinkWrap:
+                                    true, // Important for GridView inside SingleChildScrollView
+                                physics:
+                                    const NeverScrollableScrollPhysics(), // Disable GridView's own scrolling
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 0.0,
+                                ),
+                                gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 2,
+                                      crossAxisSpacing: 16.0,
+                                      mainAxisSpacing: 16.0,
+                                      childAspectRatio:
+                                          0.75, // Adjusted aspect ratio
+                                    ),
+                                itemCount: productProvider.allProducts.length,
+                                itemBuilder: (context, index) {
+                                  final product =
+                                      productProvider.allProducts[index];
+                                  return GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (context) => ProductDetailScreen(
+                                                product: product,
+                                              ),
+                                        ),
+                                      );
+                                    },
+                                    child: Card(
+                                      color: Colors.grey.shade200,
+                                      elevation: 4,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      clipBehavior: Clip.antiAlias,
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Expanded(
+                                            child: Container(
+                                              alignment: Alignment.center,
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.only(
+                                                  topLeft: Radius.circular(12),
+                                                  topRight: Radius.circular(12),
+                                                ),
+                                              ),
+                                              child: ClipRRect(
+                                                borderRadius: BorderRadius.only(
+                                                  topLeft: Radius.circular(12),
+                                                  topRight: Radius.circular(12),
+                                                ),
+                                                child: Stack(
+                                                  children: [
+                                                    CachedNetworkImage(
+                                                      imageUrl: product.image,
+                                                      width: double.infinity,
+                                                      fit: BoxFit.cover,
+                                                      placeholder:
+                                                          (
+                                                            context,
+                                                            url,
+                                                          ) => const Center(
+                                                            child:
+                                                                CircularProgressIndicator(
+                                                                  strokeWidth:
+                                                                      2,
+                                                                ),
+                                                          ),
+                                                      errorWidget:
+                                                          (
+                                                            context,
+                                                            url,
+                                                            error,
+                                                          ) => const Icon(
+                                                            Icons.broken_image,
+                                                          ),
+                                                    ),
+                                                    Positioned(
+                                                      top: 0,
+                                                      right: 0,
+                                                      child: Container(
+                                                        height: 30,
+                                                        width: 30,
+                                                        decoration: BoxDecoration(
+                                                          color:
+                                                              Colors.deepOrange,
+                                                          borderRadius:
+                                                              BorderRadius.only(
+                                                                topRight:
+                                                                    Radius.circular(
+                                                                      12,
+                                                                    ),
+                                                                bottomLeft:
+                                                                    Radius.circular(
+                                                                      12,
+                                                                    ),
+                                                              ),
+                                                        ),
+                                                        child: Icon(
+                                                          Icons
+                                                              .favorite_border_outlined,
+                                                          color: Colors.white,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8.0,
+                                              vertical: 4.0,
+                                            ),
+                                            child: Text(
+                                              product.title,
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8.0,
+                                              vertical: 4.0,
+                                            ),
+                                            child: Text(
+                                              'Rs.${product.price.toStringAsFixed(2)}',
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                          ),
+
+                                          const SizedBox(height: 8),
+                                        ],
+                                      ),
                                     ),
                                   );
                                 },
-                                child: Card(
-                                  elevation: 4,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  clipBehavior:
-                                      Clip.antiAlias, // Ensures image respects border radius
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Expanded(
-                                        child: Container(
-                                          alignment: Alignment.center,
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: CachedNetworkImage(
-                                            imageUrl: product.image,
-                                            fit: BoxFit.contain,
-                                            placeholder:
-                                                (context, url) => const Center(
-                                                  child:
-                                                      CircularProgressIndicator(
-                                                        strokeWidth: 2,
-                                                      ),
-                                                ),
-                                            errorWidget:
-                                                (context, url, error) =>
-                                                    const Icon(Icons.error),
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8.0,
-                                          vertical: 4.0,
-                                        ),
-                                        child: Text(
-                                          product.title,
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8.0,
-                                          vertical: 4.0,
-                                        ),
-                                        child: Text(
-                                          '\Rs.${product.price.toStringAsFixed(2)}',
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.blueAccent,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(
-                                        height: 8,
-                                      ), // Spacing at the bottom
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                ),
-                Container(
-                  height: 50,
-                  decoration: BoxDecoration(color: Colors.white),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      IconButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => DashboardPage(),
-                            ),
-                          );
-                        },
-                        icon: Icon(Icons.home),
+                              ),
+                        ],
                       ),
-                      IconButton(onPressed: () {}, icon: Icon(Icons.category)),
-                      IconButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => CartScreen(),
-                            ),
-                          );
-                        },
-                        icon: Icon(Icons.shopping_cart),
-                      ),
-                      IconButton(onPressed: () {}, icon: Icon(Icons.person)),
-                    ],
+                    ),
                   ),
                 ),
-                // Bottom Navigation Bar
               ],
+            ),
+            bottomNavigationBar: BottomNavigationBar(
+              items: const <BottomNavigationBarItem>[
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home_filled),
+                  label: '',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.favorite_border),
+                  label: '',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.shopping_cart_outlined),
+                  label: '',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.person_outline),
+                  label: '',
+                ),
+              ],
+              currentIndex: productProvider.selectedIndex,
+              selectedItemColor: Colors.deepOrange,
+              unselectedItemColor: Colors.grey,
+              type: BottomNavigationBarType.fixed,
+              showSelectedLabels: false,
+              showUnselectedLabels: false,
+              onTap: (index) async {
+                productProvider.setSelectedIndex(index);
+                if (index == 2) {
+                  // Navigate to CartScreen
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const CartScreen()),
+                  );
+                  productProvider.setSelectedIndex(0);
+                }
+              },
             ),
           );
         },

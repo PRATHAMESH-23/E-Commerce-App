@@ -1,6 +1,6 @@
-// lib/screens/cart_screen.dart
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:e_commerce_app/viewmodel/cart_viewmodel.dart';
+import 'package:e_commerce_app/widgets/custom_appicon.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:e_commerce_app/model/cart_item_model.dart';
@@ -13,55 +13,68 @@ class CartScreen extends StatelessWidget {
     final cartProvider = Provider.of<CartProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Your Cart'),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.delete_sweep),
-            onPressed: () {
-              // Show confirmation dialog before clearing cart
-              showDialog(
-                context: context,
-                builder: (BuildContext dialogContext) {
-                  return AlertDialog(
-                    title: const Text('Clear Cart?'),
-                    content: const Text(
-                      'Are you sure you want to remove all items from your cart?',
-                    ),
-                    actions: <Widget>[
-                      TextButton(
-                        child: const Text('Cancel'),
-                        onPressed: () {
-                          Navigator.of(dialogContext).pop();
-                        },
-                      ),
-                      TextButton(
-                        child: const Text('Clear'),
-                        onPressed: () {
-                          cartProvider.clearCart();
-                          Navigator.of(dialogContext).pop();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Cart cleared!')),
-                          );
-                        },
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
-          ),
-        ],
-      ),
+      backgroundColor: Colors.grey.shade200,
       body: Column(
         children: [
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
+
+            child: SafeArea(
+              // Ensures content respects device notches/status bar
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  CustomAppicon(
+                    icon: Icons.arrow_back,
+                    onButtonClicked: () => Navigator.of(context).pop(),
+                  ),
+                  Text(
+                    "My Cart",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  InkWell(
+                    child: CustomAppicon(icon: Icons.delete_sweep),
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext dialogContext) {
+                          return AlertDialog(
+                            title: const Text('Clear Cart?'),
+                            content: const Text(
+                              'Are you sure you want to remove all items from your cart?',
+                            ),
+                            actions: <Widget>[
+                              TextButton(
+                                child: const Text('Cancel'),
+                                onPressed: () {
+                                  Navigator.of(dialogContext).pop();
+                                },
+                              ),
+                              TextButton(
+                                child: const Text('Clear'),
+                                onPressed: () {
+                                  cartProvider.clearCart();
+                                  Navigator.of(dialogContext).pop();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Cart cleared!'),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
           Expanded(
             child:
                 cartProvider.items.isEmpty
@@ -111,7 +124,7 @@ class CartScreen extends StatelessWidget {
   ) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
-      elevation: 2,
+      color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
@@ -168,7 +181,10 @@ class CartScreen extends StatelessWidget {
                       ),
 
                       IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
+                        icon: const Icon(
+                          Icons.delete_outline_outlined,
+                          color: Colors.red,
+                        ),
                         onPressed: () {
                           print(cartItem.product.id);
                           cartProvider.removeProductFromCart(
@@ -184,22 +200,20 @@ class CartScreen extends StatelessWidget {
 
                   const SizedBox(height: 6),
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
-                        height: 40,
-
+                        height: 30,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(100),
+                          color: Colors.grey.shade300,
                         ),
                         child: Row(
-                          mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
                               iconSize: 20,
                               constraints:
                                   const BoxConstraints(), // To remove extra padding
-
                               icon: const Icon(Icons.remove),
                               onPressed: () {
                                 cartProvider.decrementQuantity(
@@ -229,7 +243,6 @@ class CartScreen extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 16),
                       Text(
                         'Total:Rs.${(cartItem.product.price * cartItem.quantity).toStringAsFixed(2)}',
                         style: const TextStyle(
@@ -254,24 +267,43 @@ class CartScreen extends StatelessWidget {
       padding: const EdgeInsets.all(20.0),
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: const Offset(0, -3),
-          ),
-        ],
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(100),
+            ),
+
+            child: Padding(
+              padding: const EdgeInsets.only(left: 12.0, right: 12.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("Enter Discount code"),
+                  TextButton(
+                    onPressed: () {},
+                    child: Text(
+                      "Apply",
+                      style: TextStyle(
+                        color: Colors.deepOrange,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Subtotal (${cartProvider.totalItems} items):',
+                'Subtotal',
                 style: TextStyle(fontSize: 16, color: Colors.grey[700]),
               ),
               Text(
@@ -284,25 +316,13 @@ class CartScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          const Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Shipping:',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-              ),
-              Text(
-                'Free', // Or calculate actual shipping cost
-                style: TextStyle(fontSize: 16, color: Colors.green),
-              ),
-            ],
-          ),
-          const Divider(height: 24, thickness: 1),
+
+          const Divider(thickness: 1),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'Total:',
+                'Total',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -337,7 +357,7 @@ class CartScreen extends StatelessWidget {
               ),
             ),
             child: const Text(
-              'Proceed to Checkout',
+              'Checkout',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),

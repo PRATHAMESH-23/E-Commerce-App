@@ -12,6 +12,7 @@ class ProductProvider with ChangeNotifier {
   bool _isLoadingCategories = false;
   String? _errorProducts;
   String? _errorCategories;
+  String? _selectedCategory;
 
   List<Product> get allProducts => _allProducts;
   List<String> get categories => _categories;
@@ -19,6 +20,22 @@ class ProductProvider with ChangeNotifier {
   bool get isLoadingCategories => _isLoadingCategories;
   String? get errorProducts => _errorProducts;
   String? get errorCategories => _errorCategories;
+  String? get selectedCategory => _selectedCategory;
+
+  void setSelectedCategory(String? category) {
+    _selectedCategory = category;
+    notifyListeners();
+  }
+
+  int _selectedIndex = 0;
+  int get selectedIndex => _selectedIndex;
+  void setSelectedIndex(int index) {
+    if (_selectedIndex != index) {
+      // Only update if the index actually changes
+      _selectedIndex = index;
+      notifyListeners(); // Notify listeners (UI widgets) about the change
+    }
+  }
 
   // Constructor: Load data when provider is initialized
   ProductProvider() {
